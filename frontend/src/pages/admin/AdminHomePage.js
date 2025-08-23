@@ -1,8 +1,5 @@
-import { Container, Grid, Paper } from '@mui/material'
+import { Card, CardContent, Container, Grid, Typography, Box, Avatar } from '@mui/material';
 import SeeNotice from '../../components/SeeNotice';
-import Students from "../../assets/img1.png";
-import Batches from "../../assets/img2.png";
-import Wardens from "../../assets/img3.png";
 import styled from 'styled-components';
 import CountUp from 'react-countup';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,15 +8,41 @@ import { getAllBatches } from '../../redux/batchRelated/batchHandle';
 import { getAllStudents } from '../../redux/studentRelated/studentHandle';
 import { getAllWardens } from '../../redux/wardenRelated/wardenHandle';
 
+// Icons for a professional look
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import SchoolIcon from '@mui/icons-material/School';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+
+// Reusable StatCard Component
+const StatCard = ({ icon, title, count }) => {
+    return (
+        <Card sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
+            <CardContent sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box>
+                    <Typography variant="subtitle1" color="text.secondary">
+                        {title}
+                    </Typography>
+                    <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
+                        <CountUp start={0} end={count || 0} duration={2.5} separator="," />
+                    </Typography>
+                </Box>
+                <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}>
+                    {icon}
+                </Avatar>
+            </CardContent>
+        </Card>
+    );
+};
+
+
 const AdminHomePage = () => {
     const dispatch = useDispatch();
     const { studentsList } = useSelector((state) => state.student);
     const { batchesList } = useSelector((state) => state.batch);
     const { wardensList } = useSelector((state) => state.warden);
+    const { currentUser } = useSelector(state => state.user);
 
-    const { currentUser } = useSelector(state => state.user)
-
-    const adminID = currentUser._id
+    const adminID = currentUser._id;
 
     useEffect(() => {
         dispatch(getAllStudents(adminID));
@@ -27,70 +50,70 @@ const AdminHomePage = () => {
         dispatch(getAllWardens(adminID));
     }, [adminID, dispatch]);
 
-    const numberOfStudents = studentsList && studentsList.length;
-    const numberOfBatches = batchesList && batchesList.length;
-    const numberOfWardens = wardensList && wardensList.length;
+    const numberOfStudents = studentsList?.length || 0;
+    const numberOfBatches = batchesList?.length || 0;
+    const numberOfWardens = wardensList?.length || 0;
+    
+    // Dynamic welcome message
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good Morning";
+        if (hour < 18) return "Good Afternoon";
+        return "Good Evening";
+    };
 
     return (
-        <>
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Students} alt="Students" />
-                            <Title>
-                                Total Students
-                            </Title>
-                            <Data start={0} end={numberOfStudents} duration={2.5} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Batches} alt="Batches" />
-                            <Title>
-                                Total Batches
-                            </Title>
-                            <Data start={0} end={numberOfBatches} duration={5} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Wardens} alt="Wardens" />
-                            <Title>
-                                Total Wardens
-                            </Title>
-                            <Data start={0} end={numberOfWardens} duration={2.5} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={12} lg={12}>
-                        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                            <SeeNotice />
-                        </Paper>
-                    </Grid>
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            <Grid container spacing={3}>
+                {/* Welcome Header */}
+                <Grid item xs={12}>
+                    <Box>
+                        <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
+                            {getGreeting()}, {currentUser.name}! 👋
+                        </Typography>
+                        <Typography color="text.secondary">
+                            Here's what's happening today.
+                        </Typography>
+                    </Box>
                 </Grid>
-            </Container>
-        </>
+
+                {/* Stat Cards */}
+                <Grid item xs={12} md={4}>
+                    <StatCard 
+                        icon={<PeopleAltIcon sx={{ color: 'white' }} />} 
+                        title="Total Students" 
+                        count={numberOfStudents} 
+                    />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <StatCard 
+                        icon={<SchoolIcon sx={{ color: 'white' }} />} 
+                        title="Total Batches" 
+                        count={numberOfBatches} 
+                    />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <StatCard 
+                        icon={<SupervisorAccountIcon sx={{ color: 'white' }} />} 
+                        title="Total Wardens" 
+                        count={numberOfWardens} 
+                    />
+                </Grid>
+
+                {/* Notices Section */}
+                <Grid item xs={12}>
+                    <StyledPaper>
+                        <SeeNotice />
+                    </StyledPaper>
+                </Grid>
+            </Grid>
+        </Container>
     );
 };
 
-
-const StyledPaper = styled(Paper)`
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  height: 200px;
-  justify-content: space-between;
-  align-items: center;
-  text-align: center;
+// You can still use styled-components for complex custom components
+const StyledPaper = styled(Card)`
+    padding: 16px;
 `;
 
-const Title = styled.p`
-  font-size: 1.25rem;
-`;
-
-const Data = styled(CountUp)`
-  font-size: calc(1.3rem + .6vw);
-  color: green;
-`;
-
-export default AdminHomePage
+export default AdminHomePage;
